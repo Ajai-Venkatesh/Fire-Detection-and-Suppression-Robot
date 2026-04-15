@@ -1,3 +1,4 @@
+<img width="1536" height="1024" alt="fire suppression" src="https://github.com/user-attachments/assets/8f280edd-5111-4c28-81c1-609016dc145c" />
 # 🔥 Fire Detection and Suppression Robot
 
 ## 📌 Overview
