@@ -1,0 +1,171 @@
+// 🔥 Fire Detection & Suppression Robot (Improved Version)
+
+// Motor Driver Pins
+#define enA 10
+#define in1 9
+#define in2 8
+#define in3 7
+#define in4 6
+#define enB 5
+
+// Sensors & Actuators
+#define ir_R A0
+#define ir_F A1
+#define ir_L A2
+#define servoPin A4
+#define pump A5
+
+int Speed = 160;
+int s1, s2, s3;
+
+// ---------------- SETUP ----------------
+void setup() {
+  Serial.begin(9600);
+
+  pinMode(ir_R, INPUT);
+  pinMode(ir_F, INPUT);
+  pinMode(ir_L, INPUT);
+
+  pinMode(enA, OUTPUT);
+  pinMode(in1, OUTPUT);
+  pinMode(in2, OUTPUT);
+  pinMode(in3, OUTPUT);
+  pinMode(in4, OUTPUT);
+  pinMode(enB, OUTPUT);
+
+  pinMode(servoPin, OUTPUT);
+  pinMode(pump, OUTPUT);
+
+  analogWrite(enA, Speed);
+  analogWrite(enB, Speed);
+
+  digitalWrite(pump, LOW);
+
+  // Initial servo scan
+  for (int angle = 60; angle <= 120; angle += 5) {
+    servoPulse(servoPin, angle);
+  }
+  for (int angle = 120; angle >= 60; angle -= 5) {
+    servoPulse(servoPin, angle);
+  }
+}
+
+// ---------------- LOOP ----------------
+void loop() {
+
+  s1 = analogRead(ir_R);
+  s2 = analogRead(ir_F);
+  s3 = analogRead(ir_L);
+
+  Serial.print(s1); Serial.print("\t");
+  Serial.print(s2); Serial.print("\t");
+  Serial.println(s3);
+
+  // 🔥 FIRE DETECTION
+  if (s2 < 350) {  // Front fire
+    stopMotors();
+    activatePump();
+    sweepServo(60, 120);
+
+  } else if (s1 < 250) {  // Right fire
+    stopMotors();
+    activatePump();
+    sweepServo(40, 90);
+
+  } else if (s3 < 250) {  // Left fire
+    stopMotors();
+    activatePump();
+    sweepServo(90, 140);
+
+  }
+
+  // 🤖 MOVEMENT (No fire)
+  else {
+    digitalWrite(pump, LOW);
+
+    if (s2 >= 350 && s2 <= 800) {
+      forward();
+    } 
+    else if (s1 >= 250 && s1 <= 700) {
+      backward();
+      delay(100);
+      turnRight();
+      delay(200);
+    } 
+    else if (s3 >= 250 && s3 <= 700) {
+      backward();
+      delay(100);
+      turnLeft();
+      delay(200);
+    } 
+    else {
+      stopMotors();
+    }
+  }
+
+  delay(50);
+}
+
+// ---------------- FUNCTIONS ----------------
+
+// Servo control
+void servoPulse(int pin, int angle) {
+  int pwm = (angle * 11) + 500;
+  digitalWrite(pin, HIGH);
+  delayMicroseconds(pwm);
+  digitalWrite(pin, LOW);
+  delay(20);
+}
+
+// Sweep servo
+void sweepServo(int startAngle, int endAngle) {
+  for (int angle = startAngle; angle <= endAngle; angle += 3) {
+    servoPulse(servoPin, angle);
+  }
+  for (int angle = endAngle; angle >= startAngle; angle -= 3) {
+    servoPulse(servoPin, angle);
+  }
+}
+
+// Pump control
+void activatePump() {
+  digitalWrite(pump, HIGH);
+  delay(2000); // Spray for 2 seconds
+  digitalWrite(pump, LOW);
+}
+
+// Motor controls
+void forward() {
+  digitalWrite(in1, HIGH);
+  digitalWrite(in2, LOW);
+  digitalWrite(in3, LOW);
+  digitalWrite(in4, HIGH);
+}
+
+void backward() {
+  digitalWrite(in1, LOW);
+  digitalWrite(in2, HIGH);
+  digitalWrite(in3, HIGH);
+  digitalWrite(in4, LOW);
+}
+
+void turnRight() {
+  digitalWrite(in1, LOW);
+  digitalWrite(in2, HIGH);
+  digitalWrite(in3, LOW);
+  digitalWrite(in4, HIGH);
+}
+
+void turnLeft() {
+  digitalWrite(in1, HIGH);
+  digitalWrite(in2, LOW);
+  digitalWrite(in3, HIGH);
+  digitalWrite(in4, LOW);
+}
+
+void stopMotors() {
+  digitalWrite(in1, LOW);
+  digitalWrite(in2, LOW);
+  digitalWrite(in3, LOW);
+  digitalWrite(in4, LOW);
+}
